@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="theme-color" content="#14263a">
+<title>مُيسِّر — تأسيس القراءة والكتابة والحساب</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Noto+Naskh+Arabic:wght@400..700&family=Aref+Ruqaa:wght@400;700&family=Rakkas&family=Cairo:wght@300;400;500;600;700;800&family=Baloo+2:wght@400;600;700&family=Changa:wght@400;600;700&family=Architects+Daughter&family=Patrick+Hand&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink-900:#14263a; --ink-700:#1f3b57; --ink-500:#4a5a68; --ink-300:#8996a3;
+    --gold-600:#b6862f; --gold-500:#c69a45; --gold-300:#e3c988; --gold-100:#f5ecd6;
+    --sage-600:#3f6f66; --sage-300:#9fc2ba;
+    --parchment:#f5f0e3; --paper:#fffefb; --line:#e3ddc9; --line-2:#ece6d5;
+    --danger:#a8452c; --radius-sm:8px; --radius:12px; --radius-lg:18px;
+    --shadow-sm:0 1px 3px rgba(20,38,58,.08); --shadow-md:0 6px 20px rgba(20,38,58,.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--parchment);
+    color:var(--ink-900); font-family:'Cairo',sans-serif; min-height:100vh; font-size:15px;
+  }
+  h1,h2,h3{font-family:'El Messiri',sans-serif;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;padding:14px 26px;
+    background:var(--ink-900);color:#fff;position:sticky;top:0;z-index:50;
+    border-bottom:3px solid var(--gold-600);flex-wrap:wrap;gap:10px;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid var(--gold-300);}
+  .brand h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;}
+  .brand span{display:block;font-size:11px;font-weight:400;color:var(--gold-300);margin-top:1px;font-family:'Cairo';}
+  .install-btn{
+    display:none;background:var(--gold-500);color:var(--ink-900);border:none;font-weight:700;
+    padding:8px 16px;border-radius:8px;font-size:12.5px;cursor:pointer;font-family:'Cairo';
+  }
+  .install-btn.show{display:inline-block;}
+
+  /* ---------- Subject tabs (segmented, underline style) ---------- */
+  .subject-tabs{
+    display:flex;gap:2px;max-width:1280px;margin:0 auto;padding:0 26px;background:var(--ink-700);
+    overflow-x:auto;
+  }
+  .subject-tab{
+    flex:1;min-width:130px;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 10px;
+    cursor:pointer;color:rgba(255,255,255,.6);font-weight:600;font-size:13px;border-bottom:3px solid transparent;
+    white-space:nowrap;font-family:'Cairo';
+  }
+  .subject-tab .ic{font-size:15px;}
+  .subject-tab.active{color:#fff;border-bottom-color:var(--gold-500);background:rgba(255,255,255,.04);}
+
+  .shell{max-width:1280px;margin:0 auto;padding:24px 26px 56px;}
+
+  /* ---------- Template gallery ---------- */
+  .gallery-label{font-size:12px;color:var(--ink-500);font-weight:700;margin-bottom:10px;letter-spacing:.3px;}
+  .gallery{display:flex;gap:10px;overflow-x:auto;padding-bottom:16px;margin-bottom:20px;}
+  .tpl-card{
+    flex:none;min-width:148px;border:1px solid var(--line);border-radius:var(--radius);padding:14px 12px;
+    text-align:center;cursor:pointer;background:var(--paper);transition:.15s;box-shadow:var(--shadow-sm);
+  }
+  .tpl-card .badge{
+    width:38px;height:38px;border-radius:50%;background:var(--ink-900);color:var(--gold-300);
+    display:flex;align-items:center;justify-content:center;font-size:17px;margin:0 auto 8px;
+  }
+  .tpl-card .ti{font-size:12.5px;font-weight:700;color:var(--ink-700);}
+  .tpl-card .de{font-size:10px;color:var(--ink-300);margin-top:2px;}
+  .tpl-card.selected{border-color:var(--gold-500);box-shadow:0 0 0 1.5px var(--gold-500), var(--shadow-sm);}
+  .tpl-card.selected .badge{background:var(--gold-500);color:var(--ink-900);}
+
+  .workspace{display:grid;grid-template-columns:320px 1fr;gap:22px;align-items:start;}
+  @media (max-width:900px){.workspace{grid-template-columns:1fr;}}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm);}
+  .panel h3{margin:0 0 14px;font-size:14px;color:var(--ink-700);font-weight:700;display:flex;align-items:center;gap:7px;
+    padding-bottom:10px;border-bottom:1px solid var(--line-2);}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-500);margin-bottom:6px;text-transform:none;}
+  .field textarea,.field input[type=text],.field select,.field input[type=number]{
+    width:100%;padding:9px 11px;border:1.3px solid var(--line);border-radius:var(--radius-sm);font-family:'Cairo';
+    font-size:13.5px;color:var(--ink-900);background:var(--parchment);
+  }
+  .field textarea{resize:vertical;min-height:56px;}
+  .range-row{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--ink-500);}
+  .range-row input[type=range]{width:100%;accent-color:var(--gold-500);}
+  .range-row output{min-width:28px;text-align:center;font-weight:700;color:var(--ink-700);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .swatches{display:flex;gap:7px;flex-wrap:wrap;}
+  .swatch{width:23px;height:23px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 0 1.3px var(--line);}
+  .swatch.selected{box-shadow:0 0 0 2.3px var(--gold-500);}
+  .font-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+  .font-choice{border:1.3px solid var(--line);border-radius:var(--radius-sm);padding:8px 6px;text-align:center;
+    cursor:pointer;font-size:14px;background:var(--parchment);}
+  .font-choice.selected{border-color:var(--gold-500);background:var(--gold-100);}
+  .font-choice small{display:block;font-size:9.5px;color:var(--ink-300);margin-top:3px;font-family:'Cairo';}
+  .chip{padding:7px 6px;border-radius:var(--radius-sm);border:1.3px solid var(--line);background:var(--parchment);
+    cursor:pointer;font-size:11.5px;text-align:center;font-weight:600;color:var(--ink-700);}
+  .chip.selected{background:var(--ink-700);color:#fff;border-color:var(--ink-700);}
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .upload-btn{display:block;text-align:center;border:1.5px dashed var(--sage-300);border-radius:var(--radius-sm);padding:12px;
+    font-size:11.5px;color:var(--sage-600);cursor:pointer;background:#f4f8f7;font-weight:700;}
+  .remove-img{font-size:10.5px;color:var(--danger);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:'Cairo';margin-top:6px;}
+  .regen-btn{width:100%;padding:10px;border-radius:var(--radius-sm);border:1.3px solid var(--sage-600);background:#fff;
+    color:var(--sage-600);font-family:'Cairo';font-weight:700;font-size:12.5px;cursor:pointer;margin-top:2px;}
+  .toggle-row{display:flex;align-items:center;gap:8px;}
+  .toggle-row input{accent-color:var(--gold-500);}
+
+  /* ---------- preview / sheet ---------- */
+  .preview-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+  .sheet-scale{width:100%;max-width:720px;}
+  .sheet{width:100%;min-height:980px;aspect-ratio:210/297;background:var(--paper);box-shadow:var(--shadow-md);
+    border-radius:2px;padding:28px 32px;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  .sheet::before{content:"";position:absolute;inset:7px;border:1px solid var(--gold-300);pointer-events:none;}
+  .sheet::after{content:"";position:absolute;inset:11px;border:1px solid var(--line);pointer-events:none;}
+
+  .id-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px;
+    padding-bottom:12px;border-bottom:1.5px solid var(--gold-500);z-index:3;position:relative;background:var(--paper);}
+  .id-left{display:flex;flex-direction:column;align-items:center;gap:5px;flex:none;}
+  .id-left img{width:82px;height:82px;border-radius:50%;object-fit:cover;border:2.5px solid var(--gold-300);}
+  .id-left .id-date{font-size:9px;color:var(--ink-500);font-weight:600;white-space:nowrap;}
+  .id-right{text-align:right;}
+  .id-right .id-name{font-family:'Noto Naskh Arabic',serif;font-size:20px;color:var(--ink-700);font-weight:700;
+    letter-spacing:.4px;line-height:1.3;}
+  .id-right .id-name-rule{width:120px;height:1.5px;background:var(--gold-500);margin:3px 0 4px auto;}
+  .id-right .id-role{font-size:10.5px;color:var(--gold-600);font-weight:700;}
+  .id-right .id-spec{font-size:9.5px;color:var(--ink-300);margin-top:1px;}
+  .id-right .id-phone{font-size:11px;color:var(--ink-700);font-weight:700;margin-top:3px;direction:ltr;display:inline-block;}
+  .sheet-name-line{font-size:10px;color:var(--ink-300);border-bottom:1px dashed var(--line-2);padding-bottom:6px;
+    margin-bottom:12px;z-index:2;position:relative;}
+
+  .sheet-body{flex:1;position:relative;z-index:1;display:flex;flex-direction:column;gap:13px;overflow:hidden;}
+
+  .trace-row{position:relative;padding:8px 2px 13px;}
+  .guide-mid{position:absolute;right:0;left:0;top:52%;border-top:1.5px dashed var(--line);}
+  .guide-base{position:absolute;right:0;left:0;bottom:2px;border-top:2px solid var(--sage-300);}
+  .trace-text{position:relative;z-index:2;white-space:nowrap;overflow:hidden;line-height:1;padding:0 2px;letter-spacing:2px;}
+  .style-outline{color:transparent;-webkit-text-stroke:1.1px #9fb0a9;}
+  .style-faint{color:rgba(31,59,87,.28);}
+
+  .words-forms{display:flex;gap:9px;justify-content:space-between;}
+  .word-card{flex:1;text-align:center;background:var(--parchment);border:1px solid var(--gold-300);border-radius:var(--radius-sm);padding:9px 6px;}
+  .word-card .pos-label{font-size:9.5px;color:var(--gold-600);font-weight:700;margin-bottom:3px;}
+  .word-card .wd{font-family:'Noto Naskh Arabic',serif;font-size:22px;color:var(--ink-700);}
+  .word-card .em{font-size:18px;}
+
+  .letter-boxes{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;}
+  .letter-box{width:58px;height:58px;border:1.5px dashed var(--sage-300);border-radius:var(--radius-sm);display:flex;
+    align-items:center;justify-content:center;font-size:30px;color:transparent;-webkit-text-stroke:1.1px #9fb0a9;}
+
+  .reading-list{display:flex;flex-direction:column;gap:9px;}
+  .reading-item{display:flex;align-items:center;gap:10px;border-bottom:1px dashed var(--line-2);padding-bottom:7px;}
+  .reading-num{width:20px;height:20px;border-radius:50%;background:var(--ink-700);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex:none;}
+
+  .dict-list{display:flex;flex-direction:column;gap:14px;}
+  .dict-item{display:flex;align-items:center;gap:10px;}
+  .dict-num{width:20px;height:20px;border-radius:50%;background:var(--sage-600);color:#fff;font-size:10px;
+    display:flex;align-items:center;justify-content:center;flex:none;}
+  .dict-line{flex:1;border-bottom:1.5px solid var(--ink-300);height:26px;position:relative;}
+  .dict-line .answer{position:absolute;bottom:2px;right:2px;font-size:11px;color:#c9cfd3;}
+
+  .count-row{display:flex;align-items:center;gap:14px;border-bottom:1px dashed var(--line-2);padding-bottom:9px;}
+  .count-shapes{flex:1;display:flex;flex-wrap:wrap;gap:4px;font-size:20px;line-height:1;}
+  .count-box{width:42px;height:42px;border:1.5px dashed var(--sage-300);border-radius:var(--radius-sm);display:flex;
+    align-items:center;justify-content:center;font-size:18px;color:var(--ink-300);flex:none;}
+
+  .problem-row{display:flex;align-items:center;justify-content:center;gap:9px;border-bottom:1px dashed var(--line-2);
+    padding:9px 0;font-size:19px;}
+  .problem-shapes{display:flex;gap:3px;flex-wrap:wrap;max-width:140px;}
+  .problem-op{font-weight:800;color:var(--ink-700);font-size:22px;}
+  .problem-eq-box{width:46px;height:40px;border:1.5px dashed var(--sage-300);border-radius:var(--radius-sm);}
+
+  .seq-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;padding:10px 0;}
+  .seq-cell{min-width:44px;height:44px;padding:0 6px;border-radius:var(--radius-sm);display:flex;align-items:center;
+    justify-content:center;font-size:18px;font-weight:700;}
+  .seq-cell.filled{background:var(--parchment);border:1px solid var(--line);color:var(--ink-700);}
+  .seq-cell.blank{border:1.5px dashed var(--gold-500);color:var(--gold-500);background:#fff;}
+
+  .print-footer{display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid var(--gold-300);
+    padding-top:7px;margin-top:auto;z-index:2;position:relative;}
+  .print-footer .pf-text{font-size:9.5px;color:var(--ink-700);text-align:center;font-weight:600;}
+
+  .actions-bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .action-btn{display:flex;align-items:center;gap:7px;padding:11px 22px;border-radius:var(--radius-sm);border:1.3px solid transparent;
+    cursor:pointer;font-family:'Cairo';font-weight:700;font-size:13px;}
+  .action-btn.primary{background:var(--gold-500);color:var(--ink-900);}
+  .action-btn.secondary{background:var(--ink-900);color:#fff;}
+  .action-btn.ghost{background:transparent;border-color:var(--line);color:var(--ink-700);}
+  .action-btn svg{width:15px;height:15px;}
+
+  @page{size:A4;margin:10mm;}
+  @media print{
+    body *{visibility:hidden;}
+    .sheet,.sheet *{visibility:visible;}
+    .sheet{position:fixed;inset:0;width:100%;height:100%;box-shadow:none;border-radius:0;aspect-ratio:auto;
+      padding:40mm 16mm 20mm;min-height:0;}
+    .id-header{position:fixed;top:10mm;left:16mm;right:16mm;background:var(--paper);}
+    .print-footer{position:fixed;bottom:8mm;left:16mm;right:16mm;background:var(--paper);}
+  }
+  footer.credit{text-align:center;font-size:11px;color:var(--ink-300);padding:24px 0 6px;}
+
+  /* ---------- Auth screen ---------- */
+  .auth-screen{position:fixed;inset:0;background:var(--ink-900);display:flex;align-items:center;justify-content:center;
+    z-index:200;padding:20px;}
+  .auth-card{background:var(--paper);border-radius:var(--radius-lg);padding:34px 30px;max-width:360px;width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);text-align:center;}
+  .auth-card img{width:84px;height:84px;border-radius:50%;object-fit:cover;border:3px solid var(--gold-300);margin-bottom:14px;}
+  .auth-card h2{font-size:18px;color:var(--ink-700);margin:0 0 4px;}
+  .auth-card p.sub{font-size:11.5px;color:var(--ink-300);margin:0 0 20px;}
+  .auth-field{text-align:right;margin-bottom:12px;}
+  .auth-field label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-500);margin-bottom:5px;}
+  .auth-field input{width:100%;padding:11px 12px;border:1.3px solid var(--line);border-radius:var(--radius-sm);
+    font-family:'Cairo';font-size:14px;background:var(--parchment);color:var(--ink-900);}
+  .auth-submit{width:100%;padding:12px;border-radius:var(--radius-sm);border:none;background:var(--gold-500);
+    color:var(--ink-900);font-family:'Cairo';font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
+  .auth-error{color:var(--danger);font-size:12px;margin-top:10px;min-height:16px;font-weight:600;}
+  .auth-hint{font-size:10.5px;color:var(--gold-600);margin-top:14px;background:var(--gold-100);padding:8px 10px;
+    border-radius:var(--radius-sm);line-height:1.6;}
+  .logout-btn{background:transparent;border:1px solid rgba(230,201,136,.4);color:var(--gold-300);padding:7px 14px;
+    border-radius:8px;font-size:12px;cursor:pointer;font-family:'Cairo';font-weight:600;}
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card" id="authCard"></div>
+</div>
+
+<div id="appRoot" style="display:none">
+<div class="topbar">
+  <div class="brand">
+    <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCACgAKADASIAAhEBAxEB/8QAHQAAAQQDAQEAAAAAAAAAAAAAAAUGBwgBAwQJAv/EAEcQAAEDAwIDBQQGBggEBwAAAAECAwQABQYHERIhMQgTQVFhInGBkRQyQlJyoRUWM2KSsSM0REVTgtHSQ2OiwRckJXOTsvD/xAAbAQABBQEBAAAAAAAAAAAAAAAAAQIDBAUGB//EADURAAEDAgQBCgYCAgMAAAAAAAEAAgMEERIhMUEFEyJRYXGBkaGx8AYUMsHR4SOCFfEkQtL/2gAMAwEAAhEDEQA/ALlUUUUIRRRRQhFFFFCEUVg7AEk7AdTTdm5jaG5Zg2/v7vNHVmEjvOH8Svqj51FLPHCLvNk9kb5DZounHRSEw7lE3ZSo8C1NnwWovu7fDZI+Zrr+ivtNKemXl8pQCpatm20JA6k8uQ+NMbOX/Sw28PU38k4xhurh6+mSUqKiHKdfdLcbkrinI5V2kIOyk29BfAP4+SD8DSTA7Uumkh0NvsX+IN/2jsNKgPU8Cyfyq4yCZwvhKqOqIWm2IKdKKbmGZziWZRy9jV+h3HhG620L2dR+JCtlD4inHTCCDYqUODhcIooopEqKKKKEIooooQiiiihCKKKKEIpFy/J7Ti9t+mXR/YrPCyyjm48r7qR4/wAqMyyOHjNlXcJKVPOqUG40dHNb7p+qhI9abuF4jMeun63ZiUyr46N2I55tQEeCEDpxDz/786qzTPxclF9XTsB1/YKxFG3Djk08z73K0RLTk+bES8lddstmVzatbCtnXU+Heq6j3fkKe9otdvtENMS2Q2YrKfstp239SepPqa6XlhtpbhStQSkqISncnbyHiaRcVyeFkJlKhodS2y7wIK0FJUABuSCN0+1uNj5VGyOCneMZu9251P47Bkle+SVpsLNGw0CUb1c4FltEq73WW1EgxGlPPvOHZKEJG5JqhOvGuN81Kur1vt7z9uxdtZDERKuFUgA8lvbdSeoT0HqedSR299QXxItmmlseUlLiUzrmEHmvmQ00fTcFZH4KRtIuyte75a493zK6KsUd9IW3CZbC5JSehWT7LZI8NifPatqDBEOUf3LJqOUlPJs71A0ZKdgPGu1plChyG1W/X2VMEEfgYu98Q7t+0W4g/kEio7z3s0X+0MLlY/cU3BpA34Fp2UB7x/pt61abxWFp54LR0kZeV7d6zZOFTnNtj2H828lBEGTOtdwanW6W/DlsK4m32HChaD5gjmKtT2f+0Om7vx8Yz59pmeshuLdNght9XQJdHRKj4K6H0PWql8iXKy3BUG7Q3Yr6fsuJ23HmD0I9RXElSVnbbrVySOOpZfXoIVWCWald6hepVY3qsfZa1qcf+jYLmMvic5N2ue6r6/ky4T4/dUevQ89t7KyitpJdRzA6jyrnqtrqW+IZD0XSU8raht2ldFFaozyH2+NB948q20xj2vaHNORUxBBsUUUUU5IiiiihCKwSACSQAOZJrNJOUNuS7eLWytSFT19wtaTzQ1tu4f4QQPUimvdhaSlaLmyaEWfaJl8GcZPcoUC2tLVHsSJj6WkEb7KfHERupR6eSdqkGM+zJYbkRnm3mXEhSHG1BSVA9CCORFU37Z1lyKJqRa7kIMl3HEW9qPBLTZUywpJPGjlySo8j6jby5Tn2ZRkbekyXLpb1xfbWq3R3klCi3wjYkHmApW+3z8anZRNhphJiu469vvyVV1a+Sq5LDzQMvfvNSz1ptYNHtyP0mq3xGo6GZrkX2N/bCNuatzzVxFXPrUY6eah5GLjPVkf0pZaSsyG3W+BLKwDskDbkSrZIHrUjaTNOow9t97cuSpDz6j5lSjufyrApuIx1k7WtbYjEcxmLWHnfyW7PQvpYnFxve2nXc+VlSfML/b09tWZecoKTbYWQpaeLg3ShtrZtJI8hwg16BMPMyGG347qHmXEhaHEKCkqSeYII6ioA1a7MFizrP5GWRsilWZc0pXOjojJdS4sAArQSocJIA333586cFsyPSPQvGk4yjI1uOMkqWx36pcla/HdKeTfu9kV0TgJAMGqxA4xk48h0qYqKrJkfa2tjSlt49h82WB9V2bJSyP4UhR/MUxLx2stQXCRAs2PQ0+BU066fmVgflThRynZRmuh2N1ZXVXSnG88tbjMuI23JO5Q4kcJCvMH7J9fHxBqlGqOl+SadXVSJ7Lki3FezUxKOXoF/dP5Hw8qXpnai1cWo8FytUcH/AA7cg7fxb03sg7QmqN7iLh3S8wpMdY2U2q2R9iD1H1OlENNPSuxREWOrdu0dB8juN0yeWGpbZ177Hf8AYSPbQhwghRCuXD4HerhdnTVg3yIxieVSALw0ngiSnD/W0gckqP8AiD/q9+9UfgZYlh7jmW9CwTuVMEIP8O23y2p9Y5qHhKSkXFq+tqTzSpllsqBHTY8Y+dbLhT1DMMht9lz3/OpJQ+FmIbi4z8Vfia+bLdW3Fcocg8J/dNL/ALqhjQW+5FqNp3cJt2Q7+jO87m0PygPpLxRvxLURy4d9kg8ydlbmpIwS5LuNgQHtxIirMd4HqCnpv8Nq4yNnydW6nBu12bfuPv4rtWvNRTtmIs4ZEemiX6KKK0FCiiiihCKhrtO6sq02tMSLZ0NO5FcULEcuDiTGaBHE6U+J32AB5Eg+WxmWqE9q6bOyHtD3K2RW3JLsf6Nb4jKBuVKKEq4QPMrcPzq1RxNkks7QZqrWSujiu3U5JEb1a1JM/wCnLzi998TxEfSSEfwfV29NtqmfS7XGHk81iy59OmW2Y4A1HvMCWuOnffkHUJPAOv1ttvMDrSRgmD2ew5CzhtmsFtzDOkoDl1mXAFy22jzQEDktSdwCT48h5Ccl6L4vdrSqNlcaBcpK07d9DtzMHuj+4WkhXL95SvUVoVhpnMwyMyOnT2/7ssykjqmvxxvNxr0dn+lHef2rJ7TnMKyS7zOviJ2yre484VKVueHYjoCPEjw51MGWZZjGluExpOQz0stMNBplpHtOyXAOYbT4knn5DfmRUf5BMt+iuPi8ZfLXfjaGVRcXccWA+8lfMsrH30bAd504PAHcGm+b5lk2pGYqu15cenTpK+7ixWEKUGkk+y00gbn5cyeZ3Nc9w3gjIaiSa+R07F0Ffxd0kDIrZjbrUm6rdoDM84ddhWt9ePWRW4EeM5s86n/mODmfwp2HvqKUhtO6lEHxUT41NumHZjzO/tNTcrkoxmCoAhhSQ7LUPwb8Lf8AmJI+7Uly8S0q02cEOy4yxkl8Z+vLuqvpCWleoPshXolI28616nitHw+PE45e/FYkXC6uvkVWLLj1/v6+GwWG6XMk7bw4i3U/NIIHzpzxtCNXZyeNrCpjaT/jvstH5KWDU9DWDNbdIQQxa1xUchGTG4EAeQIO4qdcFyWHluMxr1DQWw7ulxpR3LTg5KST4+/xBFZ1L8SRVri2IWPWtKX4edSAOkN+xUIuHZ81jZBUrCpDg/5UuOs/IOU075pdqTaEqXPwTImUJ6rEBbiR8UAivUCkPNssx/C7C9e8kubMCG0Oqz7TivuoT1Uo+Qq6KuRxtZRfKRtGq8pZjD8d1TMlh1h1J5ocQUqHwPOnroZpzdNTM6i2KAlaIqSHZ0rh3THZB5q/EeiR4k+W9S7l/wD4gdqXOWBYbSq14lbnChmTJRs20D9Zxah+0cI6ITvt05c1G2Gj+m+O6Y4o3YrC0VrUQuZMcA72U5t9ZR8B5JHID4kvkmwjPVEcQcctEuW2DbcWsdrtFtYTGt0UNxGWx0Sn6qfiTtz8SaSbIP0bqRd7cPZZnxkTmx+8Dwr/ADO9b9VVPN6d3uTHOz0aKZLZ8lNkLH5prkXKbn5Th19j7d3PhPp3HilTSXE/yNY1VEeZL0OHnkfVXoJRjdEd23+/2Tyoooq0mIooooQiqY6ghOM9pLUTMn0JLlit6JsALG4Mp9tplg7ePCXFK/yVc6qj9t62OWqXcrwyghq9RIKHFeao7roI+TjXyq1SOs+x3VaqbdlxspV7I+LJsulke/SgXLpkKzOkvL5rUgk92CfHl7XvWal+Q8zHjuSJDiGmWkFbi1HYJSBuST5AUg6ZNtNab4w2yAG02iIE7eXcpqNu1/k0+2aa/qzYwty75E8iA0239dSVqCSkeqt+H51DPLjkLnbn1yUsMeCMNGwVa88uWV9o7WtcDGWVuW6MS1B7zcMxIwOyn3D4FR5+Z9lI32q2mimjGJaY29C4MdM+9rRtJuj6B3qt+qUD/ho9B18Sa6dA9MrdpfgrFoYS27dJAS9c5YHN57boD9xPRI+PUmpCp8s2Lmt0CbFEG846lNTVPIV49iy3Iy+GZLcEaMfFKiCSr4JSo+/aoZxDH5WQ3VEJpfCpe63HFc+FI6k+f+pp39pOWIcnEHH1BERc55p1Z6JUpvZJPx3/ADrXpxLTZL0HnkHu3EFpzlzSCevzFcFx17X8QjjmNoxb9rqeHAspHPj+ortu+i8N+Er6Hd3RKCfZDrY7tR9duY/OlTSWEMI09lO5JIZtraZbzzqpDgShtI2R1Pnw7jz3FOXMMwseLYrKyO5SVLhsJ3CWElxx1R+qhCRzKieX89hVHNV8o1X1hvSnv1Zv7dmbUfodvjw3S22nwUo7bKWfE/LYV1NDwmkZIJ4rNAFtclhVnEpzGY3ZkqyOSa+2aW6uDil4sEBB3H6VvUngbHq3HRu4v0KuAe+uHEMD0zzm/N3rKtQmdRr0OaGHZaG47XjsiMk8k+h3B8RVSJWCZjaY/fT8PvTDY5qWuGvZPv2HKklh/u3AptRS4g7hQOxSfTyro44I3t/if3jNYDqmRjv5G37cl6jQYkWBEahwYzMWMynhbZZQEIQPIAcgK31S7Q3tEXvHZbFnzGS/drIpQQJDh4pEQefF1WkeIO58j4VcuDKjToTM2G+3IjPthxp1tW6VpI3BB8QRVCenfCectGCoZMOakTUspTpzkhV0Fqk7/wDxKpl6MyVXPT7TqSTxKZafST6IQ43/AKUua/XBNs0aymUVBJVAUyn3uEIH/wBqQ+zHHUdIcXeWPqRpCkk/vyFbfkn86Y9uKD+w8k1rrVn9T6qVaKKKjVpFFFFCEVFHasw1zMdG7wzDZLtwgNGXHSBzVwbKUke8J+YFSvWCAQQRuD1BpWnCbhIRcWUbdmC/oyPQbE5yXAtbMFMN3nzC2SWzv/CD8aSrlAZyTtDQnJYDjNi2eZQrmOMMrAPwU6T7wK16OWJzTTUTJcF5psN4fVebAfso4tg+wPVJ4SB93nSfklxfxnV+ZcEp3/pEuFJ+2hSBuP51kcWrGwcnINA/PwKv0NOZMTNy3LxCnOikC2Zjjc+Ml9F1jM7jdSHlhCk+/em5merGO2WOtFscF2mkbIQ0f6JJ81L6beg3+FW319MxnKF4t2qBtLM52ENN1x9pe3Wu6aYSY0+U3HlocS9bweanHk7+wB6gkE9BvuagXT3Uly3oTa8kYecLHsCQkbuJA8FpP1tvPr761Zhlt0v10cuN2ll548kpHJDSfupHgP8A8afOmml8CZA/XPP2zHtiEcUeK4ooU8DyCl7bHb7qep5Hp15Spf8A5WchrbNA1PVuehdDFEKGHnuuTsPQJ32PPsZW0laLzHSSOiwpBHzFd0vUPGdu7/TkZSugAJO/yFK+P6b6byYbVwgY+2pt0cQDjrh29CCqnfa7FZbWALdaYMTboWmEpPzA3pYfht72giQYT0Z/hUpa+EO+g368lFkq9tSWy/HUot/e4FJH5gVCOt+E2u/WqVfLTHbjXmMgukNJCfpSRzUlQHVe25B6noevK6DiEONqbcSlaFDZSVDcEe6qvatfR8azi5Q0LCIjID4BPJCFI4iPcOdONBUcFmjqKd97mxGl+o9IKeySHiMboZW2yv8AtVFiSt9gTV1+w9lkm74Tc8amOqcNneQqMVHcpZd4jw+4KSr+KqLsO7ubpGw33Aq53YFscpjHsiyeQkojzHmoscnkFBoKK1e7dYHvBr06rcHQG64emjLagEd6X+2/kabfp9bsdaX/AOYuswLUgHmWmhueX4yj5VLml1kVjmnOPWRxPC7Et7Lbo8nOEFX/AFE1XaG2vXDtPKuDYL2K4wpIC+qHEtqJSB5945ufwJq11ZkvNY1neVep/wCSR0u2g7kUUUVXVxFFFFCEUUUUISPldjbvcFtKHfo06K6JEKUBuWHR0Pqk9CPEE1Hmp1gn5NbW7zCid3fLcnup8JPMqT1BR94dSk+IPmNqlum5qBkWP4dYXspyCYITEQcIcSN1uE9G0p+2SfD48tt6p1VCyqaWHf2D2j9KxBVOgIcNvfgqvP3JSeJCwUqHIgjmD5UjSJL8ySiLDZcffcPChttJUpZ8gBzNOHK+0VgN+nrWvTFc1JP9ZekoadUPMhKT+ZNOHT/VzAAv/wBLadxKQobd5ItrL7Z9C43ssD3isI/CFXGcVrjqtfwJC0R8T0hyvY9enjZOXR7RlTEhrIM0YSp5JC49tVspKD4Kd8CfJPQePlXX2irVl7siNd4j6X8fho4lxmwQppzxWv7w25A+Hx3Lts2aXBUNM99FvvVqP94Wl3vEp/EnfcfHanlAm2+8QC7GdalRnElKhtuOY5pUD/I1eZTU0kDqRl2u3ByPf0jsyUBqZhKKh1nDqzHd0KH9C75kt/lp+ibN2iL7MlxxO6VH7ifNX8vHyM2Umw4tlxexdzHbi2u1xEFR5hDbY6kkn+ZqIMy1wlylSYOnNlcui2Rs7cpCeCO1+9uohKR6rUkehqxRQM4fEIbkk7a+A6FFUSGqeZALAb/kqYMivlpx21uXO9TmYcVv7Tiuaj4JSOqlHwA515+doLUv9aslu5gKIE13hcIO/dspASlvcdVEAcXlzHiaV9QJdwyOYuZmWoSpbx3H0e0tGUUA9UhxRbbSP/b4h76b2GSNKcdvCZd8xK+ZG0hQKW5NwbabHqW0I9r3FW3vrai4ZLKWyzN+nMDr6T+vFZL+KQsDo4X5nInq6AtOgmjOSan3ltTLTsGwNObTLmtHsgDqhvf66/Qch4+tsdSpbttssHQ/SiIBcXYwZlOIV7FtiH6y3Fjote5JPXmT1Ipz6cZxZdRMODOnL7FlRGAYkNOR0pdt425BDI9kk8+FW/Dy6HYpp4YfitmxWC7GtUdXeSHC7LlPK435Th6rcWealfkPACpJZji5w02/KY2IObZhyOp+wSbpLgVp06xBiw2wd45v3kuSpOypDpHNR8h4AeAA99O6iiqpJcblWmtDQANEUUUUiciiisUIWaKKwSACSdgKELnuUxu3wHpjyHnENJKihlpTi1eiUp5knyqv+o0vLs4nMqf0fulziRCr6IzNDbSEk8ishxXNWw68PLp51OuO5DY8ijuSbFdItxZaUEOLYXxBJKQoA/5VA/GlJxaG21OOKCUIBUpR6ADxqN8WM84kdhI8xY+BCUOyyt4X9cvJU6mYZmray6dAmFo+6mej+TZFNu/Q5MFB/TWiOUWhAHN6DJeUkev9I2tPyIq60HI7FNRalRLrFeTd21O2/hX/AFlCUhSlI8wAQa+FZPj6bybMbvFFwElMUx+P2++LRdCNvMtgq91TwiOI3a0j+z//AEq0sRkFnOB7m/hef9lyX9Xb7+kcLy6dY5yTzYuLPc8X7qykrbWPx8IqwWjmq6L/AHpiK9FZsmVLTuYjawIV5QOpZVuQh3qQNyD4HrU0ZhF08u12Yx/Kodhm3CWB3EaYwhbrgPFsU7jfnwK6eRqPMn7MWn05z6Vjr10xeYlYdbXBkFbSVg7hXAvfYg/dKamqTDVtAlGY0O471HTxSUpvEctxsU3O0Pm0Ruc21f0y5TX17VjMdRbck7f2mWoc2299+FP1iB4czVeciyl++ONt5LkcaJDaO8ez2djvGmPRKEkN7+pWVHxJqy7ugOCoyE3bU7Npl/vF0d34ZUpEJuSrdKQkISeJWxUhIAVsNwNudSLgVm0ntU1Ftw+2Y8zMAeKRHZSp4hlzunTxkFR4V+yefWimMVNdzBdx1PvQJ1SySp5rzZo0HvdVFxlhqUhIsek+XZFuOT0h5xts+uzLfL4rNO6FimbO8KmNAWmk+Tszn8e9Jq5VJbeQ2Jy7N2lu6xFznVutoYS4CsqaCS4Nh4p4k7jw3qOYxzG7mk/2d9iEsUHJZNNu5v4VeMJi5jiV8ReYmjUy1yeAtPLhqacDqDzKVBtQJ6AjcHYirD4zeE3y1ImiDOgOE8LkeYwppxtQ6ghQG48iOtKlciLnAXdH7UiW0qcwyh92OFbrQ2oqCVEeRKVAe6qzYgw3aTboJJ9bnzsrWLKxt4Aelh5LropKxO8oyDHol4biPxEyUlQZfSUuI2URsoHoeVKtSaJNUUUUUIRRRRQhFI2cMXyVh14j4zJbjXp2G6iA859VDxSeE9Dtz8aWaKUGyCq/2VnVzHLHlVuiYnkkt+5x0fomQ/fo0pUF3uOBRUtax/xPb2SCNtq+rDbNVXb7Yn5cLMUSHHC3fH7ldYioDjKmVhQRHaWeEhZQUkDfkdyd6nxauFO/CpXonrXOuYpP9ilq9yR/rTzNbZRiHrVe4tr1QtmE43BtOHZVDv8Aj8KPFaU1eYgt8gtqHH3jXee0lad077bjl5UtWXF8yumprGXz8XftEd7Jm5q2H5TLjjTKLYuOVngUQd3CAANzz6VMa7otP91XJXuaT/urQu9rT/cd4V7mE/7qYapvu6cKc+7KKNQrRqg1qSrIrZHulytUS4RJEdmJeG47RhoRs+wphZSFOKWSrjUduHluOlJllzvNr3PQ2ykRodxydmSzL/TUJxuNAbbbdejEIWSVd2lbhCd/ZWDvU0sX1b0ltg2K8thxQTxuR0hCd/Eni6VCebdoPG7Lnhxiw2uFdGksvMbpZLak3ELU0lk8XCAg7AFY35GpYX8tk0XsopmiLNxtdFoyTPsnEa5WbGZmRWyDlUyQi4pkxA3Mt6XHEoZZ7xQVsFd2QeQPdg70taPYflVrzaDfLzZV29hyFdy6hUhtxTK5NwS+22rhUd1cG5JG45dacVs1Bk2w223ZHYmLU+7HDi2IbgfDfI7hIRvyBBH508pl8Md8Nos92kpKEqDjMcFB3G/ioHf4VUZxCKQva3/qbHX33qx8o9oa524uFFQ11TFxq3uybbCm5Kqc5DuNgjyizOZX3qkIDTSwS4fqk8wNiSDtSfarPn9vzOHmy8DkONi53RwWtiVEQ+y1IajhClHjCFErbcJPETzFSUhiErKv1k/Q+TibwcHCVnuduHh/Z8fD09OvOl9F2Wr+6Lmn3tJ/3VN8zGPpHqmcg8/UVX9cLW5+xuSZNtzZWStPqcgqbu8JqC0jvSpKHG0r3dHB7JKgfIbbb06kPaiHUi25BbsQy6JGkSg1dok+8xXYf0ZSeHibbDhKFIVsscI5jiHjUvNzVL/sMtP4kAf966W1cY3KFo/EKfy4dsm8jbcpn6KWa549pjZ7PeY5jzo4e71srCuHieWocwSDyINPKiimE3N08CwsiiiikSoooooQisE7VmihC+Csjwr4U8R4Vt2oKR5UIXKuSR9k1qVNUPsmu0toPhWCy2fsiluElik5dxUPsH5UxswwLE8pyFV9vFvkOS1Wx627IKeANO8RUoJKTs5uo7L6ipIMdo/ZFY+jNfdFOD7aJpbfVRvimD41jV2gzrVDeQmDBTEZbdSFHcH9sVbblzb2d/Knym5qP2FfKu/6Kz90UCM190UxjGMvhFr5p5c91rnRcqJyj9g1uTKJ8DW4MNj7Ir6DaB0ApbhJYrWl0nwNbArevoJHlRsKRKgHes0UUIRRRRQhf//Z" alt="شعار">
+    <div><h1>مُيسِّر</h1><span>تأسيس القراءة والكتابة والحساب</span></div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <button class="install-btn" id="installBtn">📲 ثبّت التطبيق</button>
+    <button class="logout-btn" id="logoutBtn">🔒 خروج</button>
+  </div>
+</div>
+
+<div class="subject-tabs" id="subjectTabs"></div>
+
+<div class="shell">
+  <div class="gallery-label">اختر نموذجًا</div>
+  <div class="gallery" id="gallery"></div>
+  <div class="workspace">
+    <div class="panel" id="controlsPanel"></div>
+    <div class="preview-wrap">
+      <div class="sheet-scale"><div class="sheet" id="sheet"></div></div>
+      <div class="actions-bar">
+        <button class="action-btn ghost" onclick="window.print()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+          طباعة
+        </button>
+        <button class="action-btn primary" onclick="exportPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          تحميل PDF
+        </button>
+        <button class="action-btn secondary" onclick="exportPNG()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+          تحميل صورة
+        </button>
+      </div>
+    </div>
+  </div>
+  <footer class="credit">حسن عبدالحميد — أخصائي التربية الخاصة (صعوبات تعلم) — 01010916827</footer>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const LOGO_SMALL = "data:image/jpeg;base64,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";
+
+/* ---------------- Auth ---------------- */
+const DEFAULT_PHONE = '01010916827';
+const DEFAULT_PASSWORD = '1234';
+const AUTH_KEY = 'muyassir_auth_v1';
+
+function loadAuth(){
+  try{
+    const raw = localStorage.getItem(AUTH_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  const def = { phone:DEFAULT_PHONE, password:DEFAULT_PASSWORD, isDefault:true };
+  try{ localStorage.setItem(AUTH_KEY, JSON.stringify(def)); }catch(e){}
+  return def;
+}
+function saveAuth(a){ try{ localStorage.setItem(AUTH_KEY, JSON.stringify(a)); }catch(e){} }
+
+let auth = loadAuth();
+
+function renderLoginScreen(errorMsg){
+  const card = document.getElementById('authCard');
+  card.innerHTML = `
+    <img src="${LOGO_SMALL}" alt="شعار">
+    <h2>تسجيل الدخول</h2>
+    <p class="sub">مُيسِّر — حسن عبدالحميد، أخصائي التربية الخاصة</p>
+    <div class="auth-field"><label>رقم الهاتف</label><input type="text" id="loginPhone" inputmode="numeric" placeholder="01xxxxxxxxx"></div>
+    <div class="auth-field"><label>كلمة السر</label><input type="password" id="loginPass" placeholder="••••••"></div>
+    <button class="auth-submit" id="loginBtn">دخول</button>
+    <div class="auth-error">${errorMsg||''}</div>
+    ${auth.isDefault ? `<div class="auth-hint">أول مرة تدخل؟ استخدم البيانات الافتراضية:<br>الهاتف: ${DEFAULT_PHONE} — كلمة السر: ${DEFAULT_PASSWORD}<br>هيُطلب منك بعدها تسجيل بياناتك الجديدة.</div>` : ''}
+  `;
+  document.getElementById('loginBtn').onclick = ()=>{
+    const phone = document.getElementById('loginPhone').value.trim();
+    const pass = document.getElementById('loginPass').value;
+    if(phone===auth.phone && pass===auth.password){
+      if(auth.isDefault) renderSetupScreen();
+      else enterApp();
+    } else {
+      renderLoginScreen('رقم الهاتف أو كلمة السر غير صحيحة');
+    }
+  };
+}
+
+function renderSetupScreen(){
+  const card = document.getElementById('authCard');
+  card.innerHTML = `
+    <img src="${LOGO_SMALL}" alt="شعار">
+    <h2>تسجيل بياناتك الجديدة</h2>
+    <p class="sub">هذه أول مرة تسجّل دخول — من فضلك حدّد رقم هاتفك وكلمة سر جديدة</p>
+    <div class="auth-field"><label>رقم الهاتف الجديد</label><input type="text" id="newPhone" inputmode="numeric" value="${DEFAULT_PHONE}"></div>
+    <div class="auth-field"><label>كلمة السر الجديدة</label><input type="password" id="newPass" placeholder="••••••"></div>
+    <div class="auth-field"><label>تأكيد كلمة السر</label><input type="password" id="newPass2" placeholder="••••••"></div>
+    <button class="auth-submit" id="setupBtn">حفظ ودخول</button>
+    <div class="auth-error" id="setupError"></div>
+  `;
+  document.getElementById('setupBtn').onclick = ()=>{
+    const phone = document.getElementById('newPhone').value.trim();
+    const p1 = document.getElementById('newPass').value;
+    const p2 = document.getElementById('newPass2').value;
+    if(!phone || !p1){ document.getElementById('setupError').textContent='من فضلك أكمل كل الحقول'; return; }
+    if(p1 !== p2){ document.getElementById('setupError').textContent='كلمة السر غير متطابقة'; return; }
+    auth = { phone, password:p1, isDefault:false };
+    saveAuth(auth);
+    enterApp();
+  };
+}
+
+function enterApp(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appRoot').style.display='block';
+  renderAll();
+}
+
+renderLoginScreen();
+
+/* ---------------- Data ---------------- */
+const AR_FONTS = [
+  {id:'naskh', label:'نسخ', family:"'Noto Naskh Arabic', serif"},
+  {id:'ruqaa', label:'رقعة', family:"'Aref Ruqaa', cursive"},
+  {id:'thuluth', label:'ثلث', family:"'Rakkas', cursive"},
+  {id:'plain', label:'عادي', family:"'Cairo', sans-serif"},
+];
+const MATH_FONTS = [
+  {id:'plain', label:'عادي', family:"'Cairo', sans-serif"},
+  {id:'baloo', label:'مستدير', family:"'Baloo 2', cursive"},
+  {id:'changa', label:'Changa', family:"'Changa', sans-serif"},
+];
+const EN_FONTS = [
+  {id:'hand', label:'Handwriting', family:"'Architects Daughter', cursive"},
+  {id:'patrick', label:'Patrick Hand', family:"'Patrick Hand', cursive"},
+  {id:'print', label:'Print', family:"'Poppins', sans-serif"},
+];
+const COLORS = ['#1f3b57','#b6862f','#3f6f66','#a8452c','#5b3a8e','#1f2937'];
+
+const LETTERS = [
+ {ch:'ا', first:'أرنب', middle:'سماء', last:'عصا', em:'🐰'},
+ {ch:'ب', first:'باب', middle:'كتاب', last:'كعب', em:'🚪'},
+ {ch:'ت', first:'تفاح', middle:'كتاب', last:'بيت', em:'🍎'},
+ {ch:'ث', first:'ثعلب', middle:'مثلث', last:'حديث', em:'🦊'},
+ {ch:'ج', first:'جمل', middle:'حجر', last:'برج', em:'🐫'},
+ {ch:'ح', first:'حصان', middle:'نحلة', last:'مفتاح', em:'🐴'},
+ {ch:'خ', first:'خروف', middle:'أخت', last:'تاريخ', em:'🐑'},
+ {ch:'د', first:'ديك', middle:'بدر', last:'يد', em:'🐓'},
+ {ch:'ذ', first:'ذئب', middle:'نافذة', last:'تلميذ', em:'🐺'},
+ {ch:'ر', first:'رمان', middle:'كرة', last:'قمر', em:'⚽'},
+ {ch:'ز', first:'زرافة', middle:'ميزان', last:'خبز', em:'🦒'},
+ {ch:'س', first:'سمكة', middle:'مسجد', last:'شمس', em:'🐟'},
+ {ch:'ش', first:'شمس', middle:'مشط', last:'ريش', em:'☀️'},
+ {ch:'ص', first:'صقر', middle:'بصل', last:'قميص', em:'🦅'},
+ {ch:'ض', first:'ضفدع', middle:'بيضة', last:'أرض', em:'🐸'},
+ {ch:'ط', first:'طائرة', middle:'بطة', last:'خط', em:'✈️'},
+ {ch:'ظ', first:'ظبي', middle:'نظارة', last:'حفظ', em:'🦌'},
+ {ch:'ع', first:'عصفور', middle:'معلم', last:'شارع', em:'🐦'},
+ {ch:'غ', first:'غزال', middle:'صغير', last:'بالغ', em:'🦌'},
+ {ch:'ف', first:'فيل', middle:'سفينة', last:'كيف', em:'🐘'},
+ {ch:'ق', first:'قمر', middle:'بقرة', last:'طريق', em:'🌙'},
+ {ch:'ك', first:'كتاب', middle:'سكر', last:'سمك', em:'📕'},
+ {ch:'ل', first:'ليمون', middle:'قلم', last:'جمل', em:'🍋'},
+ {ch:'م', first:'موز', middle:'قمر', last:'قلم', em:'🍌'},
+ {ch:'ن', first:'نجمة', middle:'بنت', last:'لسان', em:'⭐'},
+ {ch:'ه', first:'هدهد', middle:'فهد', last:'فواكه', em:'🐦'},
+ {ch:'و', first:'وردة', middle:'نور', last:'دلو', em:'🌷'},
+ {ch:'ي', first:'ياسمين', middle:'بيت', last:'كرسي', em:'🌼'},
+];
+
+const ENGLISH_LETTERS = [
+ {ch:'A',lower:'a',word:'Apple',em:'🍎'},{ch:'B',lower:'b',word:'Ball',em:'⚽'},
+ {ch:'C',lower:'c',word:'Cat',em:'🐱'},{ch:'D',lower:'d',word:'Dog',em:'🐶'},
+ {ch:'E',lower:'e',word:'Elephant',em:'🐘'},{ch:'F',lower:'f',word:'Fish',em:'🐟'},
+ {ch:'G',lower:'g',word:'Grapes',em:'🍇'},{ch:'H',lower:'h',word:'Hat',em:'🎩'},
+ {ch:'I',lower:'i',word:'Ice cream',em:'🍦'},{ch:'J',lower:'j',word:'Juice',em:'🧃'},
+ {ch:'K',lower:'k',word:'Kite',em:'🪁'},{ch:'L',lower:'l',word:'Lion',em:'🦁'},
+ {ch:'M',lower:'m',word:'Moon',em:'🌙'},{ch:'N',lower:'n',word:'Nest',em:'🪺'},
+ {ch:'O',lower:'o',word:'Orange',em:'🍊'},{ch:'P',lower:'p',word:'Pig',em:'🐷'},
+ {ch:'Q',lower:'q',word:'Queen',em:'👑'},{ch:'R',lower:'r',word:'Rabbit',em:'🐰'},
+ {ch:'S',lower:'s',word:'Sun',em:'☀️'},{ch:'T',lower:'t',word:'Tiger',em:'🐯'},
+ {ch:'U',lower:'u',word:'Umbrella',em:'☂️'},{ch:'V',lower:'v',word:'Van',em:'🚐'},
+ {ch:'W',lower:'w',word:'Watch',em:'⌚'},{ch:'X',lower:'x',word:'Xylophone',em:'🎵'},
+ {ch:'Y',lower:'y',word:'Yoyo',em:'🪀'},{ch:'Z',lower:'z',word:'Zebra',em:'🦓'},
+];
+
+const SHAPE_OPTIONS = [
+  {id:'star', ch:'⭐'}, {id:'circle', ch:'🔵'}, {id:'heart', ch:'❤️'},
+  {id:'apple', ch:'🍎'}, {id:'flower', ch:'🌼'},
+];
+const AR_INDIC = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+function toArabicDigits(n){ return String(n).split('').map(d=> /[0-9]/.test(d)? AR_INDIC[+d] : d).join(''); }
+
+/* ---------------- Subjects & templates ---------------- */
+const SUBJECTS = {
+  literacy: { label:'العربية', icon:'📖', dir:'rtl',
+    templates:[
+      {id:'letter', title:'تتبّع حرف', icon:'🔤', desc:'حرف + مواقعه'},
+      {id:'word', title:'تكوين كلمة', icon:'🧩', desc:'تجزئة وتتبّع'},
+      {id:'reading', title:'قراءة كلمات', icon:'📗', desc:'قائمة قراءة'},
+      {id:'dictation', title:'إملاء', icon:'🎧', desc:'اختبار كتابي'},
+    ]
+  },
+  english: { label:'English', icon:'🔤', dir:'ltr',
+    templates:[
+      {id:'letterEn', title:'Letter Trace', icon:'🔤', desc:'Aa + word'},
+      {id:'wordEn', title:'Word Building', icon:'🧩', desc:'Split & trace'},
+      {id:'readingEn', title:'Reading List', icon:'📗', desc:'Word list'},
+      {id:'dictationEn', title:'Dictation', icon:'🎧', desc:'Spelling test'},
+    ]
+  },
+  handwriting: { label:'تحسين الخط', icon:'✍️', dir:'rtl',
+    templates:[
+      {id:'compose', title:'إنشاء موضوع', icon:'📝', desc:'نص وصورة وخط'},
+      {id:'trace', title:'تتبّع عبارة', icon:'〰️', desc:'أي جملة تتكرر'},
+    ]
+  },
+  math: { label:'الرياضيات', icon:'🔢', dir:'rtl',
+    templates:[
+      {id:'numtrace', title:'تتبّع الأرقام', icon:'🔢', desc:'رقم يتكرر'},
+      {id:'counting', title:'العدّ والمطابقة', icon:'⭐', desc:'عدّ الأشكال'},
+      {id:'addition', title:'الجمع والطرح', icon:'➕', desc:'مسائل بصرية'},
+      {id:'sequence', title:'تسلسل الأعداد', icon:'🔗', desc:'أكمل الناقص'},
+    ]
+  }
+};
+
+let state = { subject:'literacy', template:'letter' };
+
+let store = {
+  letter:{ letter:'ب', rows:4, style:'outline', size:56 },
+  word:{ word:'كتاب', rows:3, style:'outline', size:42 },
+  reading:{ words:'قلم\nكتاب\nشمس\nباب\nقمر', size:30, font:'plain' },
+  dictation:{ words:'قلم\nكتاب\nشمس\nباب\nقمر', showAnswers:false },
+  letterEn:{ letter:'A', rows:4, style:'outline', size:56, font:'print' },
+  wordEn:{ word:'apple', rows:3, style:'outline', size:42, font:'print' },
+  readingEn:{ words:'cat\ndog\nsun\nfish\nmoon', size:28, font:'print' },
+  dictationEn:{ words:'cat\ndog\nsun\nfish\nmoon', showAnswers:false },
+  compose:{ text:'اكتب جملتك أو موضوعك هنا', font:'naskh', size:42, color:'#1f3b57', align:'center', bold:false, image:null, imagePos:'top' },
+  trace:{ text:'أهلا وسهلا', rows:6, repeats:4, style:'outline', size:34, font:'naskh' },
+  numtrace:{ number:5, rows:5, style:'outline', size:56, useIndic:true },
+  counting:{ from:1, to:5, shape:'star' },
+  addition:{ op:'add', count:6, maxNum:5, shape:'circle', problems:null },
+  sequence:{ start:1, length:9, blankEvery:3, useIndic:true },
+};
+
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; }
+function escapeHtml(str){ return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function wordsFrom(text){ return (text||'').split('\n').map(w=>w.trim()).filter(Boolean); }
+
+/* ---------------- Rendering: chrome ---------------- */
+function renderSubjectTabs(){
+  const wrap = document.getElementById('subjectTabs'); wrap.innerHTML='';
+  Object.entries(SUBJECTS).forEach(([key,s])=>{
+    const btn = el(`<div class="subject-tab ${state.subject===key?'active':''}"><span class="ic">${s.icon}</span><span>${s.label}</span></div>`);
+    btn.onclick = ()=>{ state.subject=key; state.template = SUBJECTS[key].templates[0].id; renderAll(); };
+    wrap.appendChild(btn);
+  });
+}
+function renderGallery(){
+  const wrap = document.getElementById('gallery'); wrap.innerHTML='';
+  SUBJECTS[state.subject].templates.forEach(t=>{
+    const card = el(`<div class="tpl-card ${state.template===t.id?'selected':''}">
+      <div class="badge">${t.icon}</div><div class="ti">${t.title}</div><div class="de">${t.desc}</div></div>`);
+    card.onclick = ()=>{ state.template = t.id; renderAll(); };
+    wrap.appendChild(card);
+  });
+}
+
+/* ---------------- Sheet chrome ---------------- */
+function sheetHead(){
+  return `
+    <div class="id-header">
+      <div class="id-left">
+        <img src="${LOGO_SMALL}" alt="شعار">
+        <div class="id-date">التاريخ: ..... / ..... / .....</div>
+      </div>
+      <div class="id-right">
+        <div class="id-name">حسن عبدالحميد</div>
+        <div class="id-name-rule"></div>
+        <div class="id-role">أخصائي التربية الخاصة</div>
+        <div class="id-spec">صعوبات تعلم</div>
+        <div class="id-phone">01010916827</div>
+      </div>
+    </div>
+    <div class="sheet-name-line">اسم الطفل: ....................................</div>
+  `;
+}
+function sheetFooter(){
+  return `<div class="print-footer">
+    <div class="pf-text">حسن عبدالحميد — أخصائي التربية الخاصة (صعوبات تعلم) — 01010916827</div></div>`;
+}
+function traceRowsHtml(text, rows, repeats, style, size, family){
+  const styleClass = style==='outline' ? 'style-outline' : 'style-faint';
+  const oneLine = Array(repeats).fill(escapeHtml(text)).join('&nbsp;&nbsp;&nbsp;&nbsp;');
+  let html='';
+  for(let i=0;i<rows;i++){
+    html += `<div class="trace-row"><div class="guide-mid"></div><div class="guide-base"></div>
+      <div class="trace-text ${styleClass}" style="font-family:${family};font-size:${size}px;">${oneLine}</div></div>`;
+  }
+  return html;
+}
+function readingListHtml(words, family, size){
+  return `<div class="reading-list">${words.map((w,i)=>`<div class="reading-item"><div class="reading-num">${i+1}</div>
+    <div style="font-family:${family};font-size:${size}px;color:var(--ink-700);">${escapeHtml(w)}</div></div>`).join('')}</div>`;
+}
+function dictationListHtml(words, showAnswers){
+  return `<div class="dict-list">${words.map((w,i)=>`<div class="dict-item"><div class="dict-num">${i+1}</div>
+    <div class="dict-line">${showAnswers?`<span class="answer">${escapeHtml(w)}</span>`:''}</div></div>`).join('')}</div>`;
+}
+
+/* ---------------- CONTROLS helpers ---------------- */
+function fieldFontGrid(list, current, onPick){
+  const wrap = el(`<div class="font-grid"></div>`);
+  list.forEach(f=>{
+    const item = el(`<div class="font-choice ${current===f.id?'selected':''}" style="font-family:${f.family}">Aa<small>${f.label}</small></div>`);
+    item.onclick=()=>onPick(f.id);
+    wrap.appendChild(item);
+  });
+  return wrap;
+}
+function rangeField(labelText, val, min, max, onInput){
+  const wrap = el(`<div class="field"><label>${labelText}: <output>${val}</output></label></div>`);
+  const r = el(`<input type="range" min="${min}" max="${max}" value="${val}">`);
+  r.oninput = e=>{ const v=+e.target.value; wrap.querySelector('output').textContent=v; onInput(v); };
+  wrap.appendChild(r);
+  return wrap;
+}
+function sizeField(val, onInput){
+  const wrap = el(`<div class="field"><label>حجم الخط</label></div>`);
+  const rs = el(`<div class="range-row"><input type="range" min="20" max="90" value="${val}"><output>${val}</output></div>`);
+  rs.querySelector('input').oninput = e=>{ const v=+e.target.value; rs.querySelector('output').textContent=v; onInput(v); };
+  wrap.appendChild(rs);
+  return wrap;
+}
+function styleChips(current, onPick){
+  const wrap = el(`<div class="field"><label>نمط التتبّع</label><div class="chip-row"></div></div>`);
+  [['outline','مجوّف'],['faint','باهت']].forEach(([v,l])=>{
+    const c = el(`<div class="chip ${current===v?'selected':''}">${l}</div>`);
+    c.onclick=()=>onPick(v);
+    wrap.querySelector('.chip-row').appendChild(c);
+  });
+  return wrap;
+}
+
+function renderControls(){
+  const panel = document.getElementById('controlsPanel');
+  panel.innerHTML='';
+  const tpl = state.template;
+
+  if(tpl==='letter'){
+    const s = store.letter;
+    panel.appendChild(el(`<h3>🔤 تتبّع حرف</h3>`));
+    const f1 = el(`<div class="field"><label>اختر الحرف</label></div>`);
+    const sel = el(`<select></select>`);
+    LETTERS.forEach(L=>{ const o=document.createElement('option'); o.value=L.ch; o.textContent=L.ch; if(L.ch===s.letter)o.selected=true; sel.appendChild(o); });
+    sel.onchange = e=>{ s.letter=e.target.value; renderSheet(); };
+    f1.appendChild(sel); panel.appendChild(f1);
+    panel.appendChild(rangeField('عدد أسطر التتبّع', s.rows, 1, 8, v=>{ s.rows=v; renderSheet(); }));
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+    panel.appendChild(styleChips(s.style, v=>{ s.style=v; renderControls(); renderSheet(); }));
+  }
+
+  else if(tpl==='word'){
+    const s = store.word;
+    panel.appendChild(el(`<h3>🧩 تكوين كلمة</h3>`));
+    const f1 = el(`<div class="field"><label>الكلمة</label><input type="text" id="wIn" value="${s.word}"></div>`);
+    panel.appendChild(f1);
+    document.getElementById('wIn').oninput = e=>{ s.word=e.target.value; renderSheet(); };
+    panel.appendChild(rangeField('عدد أسطر التتبّع الكامل', s.rows, 1, 6, v=>{ s.rows=v; renderSheet(); }));
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+  }
+
+  else if(tpl==='reading'){
+    const s = store.reading;
+    panel.appendChild(el(`<h3>📗 قراءة كلمات</h3>`));
+    const f1 = el(`<div class="field"><label>الكلمات (كلمة في كل سطر)</label><textarea id="rWords" dir="rtl">${s.words}</textarea></div>`);
+    panel.appendChild(f1);
+    document.getElementById('rWords').oninput = e=>{ s.words=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>نوع الخط</label></div>`);
+    f2.appendChild(fieldFontGrid(AR_FONTS, s.font, id=>{ s.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+  }
+
+  else if(tpl==='dictation'){
+    const s = store.dictation;
+    panel.appendChild(el(`<h3>🎧 نموذج إملاء</h3>`));
+    const f1 = el(`<div class="field"><label>الكلمات (يقرأها المعلّم بصوت عالٍ)</label><textarea id="dWords" dir="rtl">${s.words}</textarea></div>`);
+    panel.appendChild(f1);
+    document.getElementById('dWords').oninput = e=>{ s.words=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field toggle-row"><input type="checkbox" id="dAns" ${s.showAnswers?'checked':''}><label style="margin:0">إظهار الإجابات (نسخة المعلّم)</label></div>`);
+    panel.appendChild(f2);
+    document.getElementById('dAns').onchange = e=>{ s.showAnswers=e.target.checked; renderSheet(); };
+  }
+
+  else if(tpl==='letterEn'){
+    const s = store.letterEn;
+    panel.appendChild(el(`<h3>🔤 Letter Trace</h3>`));
+    const f1 = el(`<div class="field"><label>Choose letter</label></div>`);
+    const sel = el(`<select></select>`);
+    ENGLISH_LETTERS.forEach(L=>{ const o=document.createElement('option'); o.value=L.ch; o.textContent=L.ch+L.lower; if(L.ch===s.letter)o.selected=true; sel.appendChild(o); });
+    sel.onchange = e=>{ s.letter=e.target.value; renderSheet(); };
+    f1.appendChild(sel); panel.appendChild(f1);
+    const f2 = el(`<div class="field"><label>Font</label></div>`);
+    f2.appendChild(fieldFontGrid(EN_FONTS, s.font, id=>{ s.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(rangeField('Trace rows', s.rows, 1, 8, v=>{ s.rows=v; renderSheet(); }));
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+    panel.appendChild(styleChips(s.style, v=>{ s.style=v; renderControls(); renderSheet(); }));
+  }
+
+  else if(tpl==='wordEn'){
+    const s = store.wordEn;
+    panel.appendChild(el(`<h3>🧩 Word Building</h3>`));
+    const f1 = el(`<div class="field"><label>Word</label><input type="text" id="wEnIn" value="${s.word}"></div>`);
+    panel.appendChild(f1);
+    document.getElementById('wEnIn').oninput = e=>{ s.word=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>Font</label></div>`);
+    f2.appendChild(fieldFontGrid(EN_FONTS, s.font, id=>{ s.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(rangeField('Trace rows', s.rows, 1, 6, v=>{ s.rows=v; renderSheet(); }));
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+  }
+
+  else if(tpl==='readingEn'){
+    const s = store.readingEn;
+    panel.appendChild(el(`<h3>📗 Reading List</h3>`));
+    const f1 = el(`<div class="field"><label>Words (one per line)</label><textarea id="rEnWords" dir="ltr">${s.words}</textarea></div>`);
+    panel.appendChild(f1);
+    document.getElementById('rEnWords').oninput = e=>{ s.words=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>Font</label></div>`);
+    f2.appendChild(fieldFontGrid(EN_FONTS, s.font, id=>{ s.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+  }
+
+  else if(tpl==='dictationEn'){
+    const s = store.dictationEn;
+    panel.appendChild(el(`<h3>🎧 Dictation</h3>`));
+    const f1 = el(`<div class="field"><label>Words (read aloud by teacher)</label><textarea id="dEnWords" dir="ltr">${s.words}</textarea></div>`);
+    panel.appendChild(f1);
+    document.getElementById('dEnWords').oninput = e=>{ s.words=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field toggle-row"><input type="checkbox" id="dEnAns" ${s.showAnswers?'checked':''}><label style="margin:0">Show answers (teacher copy)</label></div>`);
+    panel.appendChild(f2);
+    document.getElementById('dEnAns').onchange = e=>{ s.showAnswers=e.target.checked; renderSheet(); };
+  }
+
+  else if(tpl==='compose'){
+    const c = store.compose;
+    panel.appendChild(el(`<h3>📝 إنشاء موضوع</h3>`));
+    const f1 = el(`<div class="field"><label>النص</label><textarea id="cText" dir="rtl">${c.text}</textarea></div>`);
+    panel.appendChild(f1);
+    document.getElementById('cText').oninput = e=>{ c.text=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>نوع الخط</label></div>`);
+    f2.appendChild(fieldFontGrid(AR_FONTS, c.font, id=>{ c.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(sizeField(c.size, v=>{ c.size=v; renderSheet(); }));
+    const f4 = el(`<div class="field"><label>اللون</label><div class="swatches" id="cColors"></div></div>`);
+    panel.appendChild(f4);
+    COLORS.forEach(col=>{
+      const sw = el(`<div class="swatch ${c.color===col?'selected':''}" style="background:${col}"></div>`);
+      sw.onclick=()=>{ c.color=col; renderControls(); renderSheet(); };
+      f4.querySelector('.swatches').appendChild(sw);
+    });
+    const f5 = el(`<div class="field"><label>المحاذاة</label><div class="chip-row" id="cAlign"></div></div>`);
+    panel.appendChild(f5);
+    [['right','يمين'],['center','توسيط'],['left','يسار']].forEach(([v,l])=>{
+      const chip = el(`<div class="chip ${c.align===v?'selected':''}">${l}</div>`);
+      chip.onclick=()=>{ c.align=v; renderControls(); renderSheet(); };
+      f5.querySelector('.chip-row').appendChild(chip);
+    });
+    const boldChip = el(`<div class="chip ${c.bold?'selected':''}">B غامق</div>`);
+    boldChip.onclick=()=>{ c.bold=!c.bold; renderControls(); renderSheet(); };
+    f5.querySelector('.chip-row').appendChild(boldChip);
+    const f6 = el(`<div class="field"><label>صورة توضيحية (اختياري)</label>
+      <label class="upload-btn">📎 إرفاق صورة<input type="file" accept="image/*" id="cImgInput" style="display:none"></label>
+      <div id="cImgCtrls"></div></div>`);
+    panel.appendChild(f6);
+    document.getElementById('cImgInput').onchange = e=>{
+      const file = e.target.files[0]; if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ev=>{ c.image = ev.target.result; renderControls(); renderSheet(); };
+      reader.readAsDataURL(file);
+    };
+    if(c.image){
+      const ic = document.getElementById('cImgCtrls');
+      ic.innerHTML = `<div class="chip-row" style="margin-top:8px;">
+        <div class="chip ${c.imagePos==='top'?'selected':''}" data-p="top">أعلى</div>
+        <div class="chip ${c.imagePos==='bottom'?'selected':''}" data-p="bottom">أسفل</div>
+        <div class="chip ${c.imagePos==='background'?'selected':''}" data-p="background">خلفية</div>
+      </div><button class="remove-img" id="rmImg">إزالة الصورة</button>`;
+      ic.querySelectorAll('[data-p]').forEach(chip=>{ chip.onclick=()=>{ c.imagePos=chip.dataset.p; renderControls(); renderSheet(); }; });
+      document.getElementById('rmImg').onclick=()=>{ c.image=null; renderControls(); renderSheet(); };
+    }
+  }
+
+  else if(tpl==='trace'){
+    const t = store.trace;
+    panel.appendChild(el(`<h3>〰️ تتبّع عبارة</h3>`));
+    const f1 = el(`<div class="field"><label>العبارة</label><input type="text" id="tText" dir="rtl" value="${t.text}"></div>`);
+    panel.appendChild(f1);
+    document.getElementById('tText').oninput = e=>{ t.text=e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>نوع الخط</label></div>`);
+    f2.appendChild(fieldFontGrid(AR_FONTS, t.font, id=>{ t.font=id; renderControls(); renderSheet(); }));
+    panel.appendChild(f2);
+    panel.appendChild(rangeField('عدد الأسطر', t.rows, 2, 12, v=>{ t.rows=v; renderSheet(); }));
+    panel.appendChild(rangeField('تكرارات بالسطر', t.repeats, 1, 8, v=>{ t.repeats=v; renderSheet(); }));
+    panel.appendChild(sizeField(t.size, v=>{ t.size=v; renderSheet(); }));
+    panel.appendChild(styleChips(t.style, v=>{ t.style=v; renderControls(); renderSheet(); }));
+  }
+
+  else if(tpl==='numtrace'){
+    const s = store.numtrace;
+    panel.appendChild(el(`<h3>🔢 تتبّع الأرقام</h3>`));
+    const f1 = el(`<div class="field"><label>الرقم</label></div>`);
+    const sel = el(`<select></select>`);
+    for(let i=0;i<=20;i++){ const o=document.createElement('option'); o.value=i; o.textContent=i; if(i===s.number)o.selected=true; sel.appendChild(o); }
+    sel.onchange = e=>{ s.number=+e.target.value; renderSheet(); };
+    f1.appendChild(sel); panel.appendChild(f1);
+    panel.appendChild(rangeField('عدد أسطر التتبّع', s.rows, 1, 8, v=>{ s.rows=v; renderSheet(); }));
+    panel.appendChild(sizeField(s.size, v=>{ s.size=v; renderSheet(); }));
+    const f4 = el(`<div class="field"><label>شكل الأرقام</label><div class="chip-row" id="nIndic"></div></div>`);
+    panel.appendChild(f4);
+    [[false,'1 2 3'],[true,'١ ٢ ٣']].forEach(([v,l])=>{
+      const c = el(`<div class="chip ${s.useIndic===v?'selected':''}">${l}</div>`);
+      c.onclick=()=>{ s.useIndic=v; renderControls(); renderSheet(); };
+      f4.querySelector('.chip-row').appendChild(c);
+    });
+  }
+
+  else if(tpl==='counting'){
+    const s = store.counting;
+    panel.appendChild(el(`<h3>⭐ العدّ والمطابقة</h3>`));
+    const f1 = el(`<div class="field two-col">
+      <div><label>من</label><input type="number" id="cFrom" min="1" max="20" value="${s.from}"></div>
+      <div><label>إلى</label><input type="number" id="cTo" min="1" max="20" value="${s.to}"></div></div>`);
+    panel.appendChild(f1);
+    document.getElementById('cFrom').oninput = e=>{ s.from=+e.target.value; renderSheet(); };
+    document.getElementById('cTo').oninput = e=>{ s.to=+e.target.value; renderSheet(); };
+    const f2 = el(`<div class="field"><label>الشكل</label><div class="chip-row" id="cShape"></div></div>`);
+    panel.appendChild(f2);
+    SHAPE_OPTIONS.forEach(sh=>{
+      const c = el(`<div class="chip ${s.shape===sh.id?'selected':''}">${sh.ch}</div>`);
+      c.onclick=()=>{ s.shape=sh.id; renderControls(); renderSheet(); };
+      f2.querySelector('.chip-row').appendChild(c);
+    });
+  }
+
+  else if(tpl==='addition'){
+    const s = store.addition;
+    panel.appendChild(el(`<h3>➕ الجمع والطرح</h3>`));
+    const f1 = el(`<div class="field"><label>العملية</label><div class="chip-row" id="aOp"></div></div>`);
+    panel.appendChild(f1);
+    [['add','جمع +'],['sub','طرح −']].forEach(([v,l])=>{
+      const c = el(`<div class="chip ${s.op===v?'selected':''}">${l}</div>`);
+      c.onclick=()=>{ s.op=v; s.problems=null; renderControls(); renderSheet(); };
+      f1.querySelector('.chip-row').appendChild(c);
+    });
+    panel.appendChild(rangeField('عدد المسائل', s.count, 2, 10, v=>{ s.count=v; s.problems=null; renderSheet(); }));
+    panel.appendChild(rangeField('أقصى رقم', s.maxNum, 3, 10, v=>{ s.maxNum=v; s.problems=null; renderSheet(); }));
+    const f4 = el(`<div class="field"><label>الشكل</label><div class="chip-row" id="aShape"></div></div>`);
+    panel.appendChild(f4);
+    SHAPE_OPTIONS.forEach(sh=>{
+      const c = el(`<div class="chip ${s.shape===sh.id?'selected':''}">${sh.ch}</div>`);
+      c.onclick=()=>{ s.shape=sh.id; renderControls(); renderSheet(); };
+      f4.querySelector('.chip-row').appendChild(c);
+    });
+    const regen = el(`<button class="regen-btn">🎲 توليد مسائل جديدة</button>`);
+    regen.onclick = ()=>{ s.problems=null; renderSheet(); };
+    panel.appendChild(regen);
+  }
+
+  else if(tpl==='sequence'){
+    const s = store.sequence;
+    panel.appendChild(el(`<h3>🔗 تسلسل الأعداد</h3>`));
+    const f1 = el(`<div class="field two-col">
+      <div><label>يبدأ من</label><input type="number" id="sStart" min="0" max="100" value="${s.start}"></div>
+      <div><label>عدد الخانات</label><input type="number" id="sLen" min="4" max="15" value="${s.length}"></div></div>`);
+    panel.appendChild(f1);
+    document.getElementById('sStart').oninput = e=>{ s.start=+e.target.value; renderSheet(); };
+    document.getElementById('sLen').oninput = e=>{ s.length=+e.target.value; renderSheet(); };
+    panel.appendChild(rangeField('إخفاء كل', s.blankEvery, 2, 5, v=>{ s.blankEvery=v; renderSheet(); }));
+    const f4 = el(`<div class="field"><label>شكل الأرقام</label><div class="chip-row" id="seqIndic"></div></div>`);
+    panel.appendChild(f4);
+    [[false,'1 2 3'],[true,'١ ٢ ٣']].forEach(([v,l])=>{
+      const c = el(`<div class="chip ${s.useIndic===v?'selected':''}">${l}</div>`);
+      c.onclick=()=>{ s.useIndic=v; renderControls(); renderSheet(); };
+      f4.querySelector('.chip-row').appendChild(c);
+    });
+  }
+}
+
+/* ---------------- SHEET per template ---------------- */
+function renderSheet(){
+  const sheet = document.getElementById('sheet');
+  const tpl = state.template;
+
+  if(tpl==='letter'){
+    const s = store.letter;
+    const L = LETTERS.find(x=>x.ch===s.letter);
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">
+        <div class="words-forms">
+          <div class="word-card"><div class="pos-label">أول الكلمة</div><div class="em">${L.em}</div><div class="wd">${L.first}</div></div>
+          <div class="word-card"><div class="pos-label">وسط الكلمة</div><div class="wd">${L.middle}</div></div>
+          <div class="word-card"><div class="pos-label">آخر الكلمة</div><div class="wd">${L.last}</div></div>
+        </div>
+        ${traceRowsHtml(s.letter, s.rows, 6, s.style, s.size, "'Noto Naskh Arabic', serif")}
+      </div>${sheetFooter()}`;
+  }
+  else if(tpl==='word'){
+    const s = store.word;
+    const chars = Array.from(s.word||'');
+    const boxes = chars.map(ch=>`<div class="letter-box">${escapeHtml(ch)}</div>`).join('');
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">
+        <div class="letter-boxes">${boxes}</div>
+        ${traceRowsHtml(s.word, s.rows, 3, s.style, s.size, "'Noto Naskh Arabic', serif")}
+      </div>${sheetFooter()}`;
+  }
+  else if(tpl==='reading'){
+    const s = store.reading;
+    const family = AR_FONTS.find(f=>f.id===s.font).family;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">${readingListHtml(wordsFrom(s.words), family, s.size)}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='dictation'){
+    const s = store.dictation;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">${dictationListHtml(wordsFrom(s.words), s.showAnswers)}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='letterEn'){
+    const s = store.letterEn;
+    const L = ENGLISH_LETTERS.find(x=>x.ch===s.letter);
+    const family = EN_FONTS.find(f=>f.id===s.font).family;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body" dir="ltr">
+        <div class="words-forms">
+          <div class="word-card"><div class="pos-label">Example word</div><div class="em">${L.em}</div>
+            <div class="wd" style="font-family:'Poppins',sans-serif;">${L.word}</div></div>
+        </div>
+        ${traceRowsHtml(L.ch+L.lower, s.rows, 5, s.style, s.size, family)}
+      </div>${sheetFooter()}`;
+  }
+  else if(tpl==='wordEn'){
+    const s = store.wordEn;
+    const family = EN_FONTS.find(f=>f.id===s.font).family;
+    const chars = Array.from(s.word||'');
+    const boxes = chars.map(ch=>`<div class="letter-box" style="font-family:${family};">${escapeHtml(ch)}</div>`).join('');
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body" dir="ltr">
+        <div class="letter-boxes">${boxes}</div>
+        ${traceRowsHtml(s.word, s.rows, 3, s.style, s.size, family)}
+      </div>${sheetFooter()}`;
+  }
+  else if(tpl==='readingEn'){
+    const s = store.readingEn;
+    const family = EN_FONTS.find(f=>f.id===s.font).family;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body" dir="ltr">${readingListHtml(wordsFrom(s.words), family, s.size)}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='dictationEn'){
+    const s = store.dictationEn;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body" dir="ltr">${dictationListHtml(wordsFrom(s.words), s.showAnswers)}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='compose'){
+    const c = store.compose;
+    const family = AR_FONTS.find(f=>f.id===c.font).family;
+    let bg='', imgTop='', imgBottom='';
+    if(c.image){
+      if(c.imagePos==='background') bg = `background-image:url(${c.image});background-size:contain;background-repeat:no-repeat;background-position:center;`;
+      else if(c.imagePos==='top') imgTop = `<img src="${c.image}" style="max-width:70%;max-height:190px;margin:0 auto;display:block;border-radius:8px;">`;
+      else imgBottom = `<img src="${c.image}" style="max-width:70%;max-height:190px;margin:0 auto;display:block;border-radius:8px;">`;
+    }
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body" style="${bg};justify-content:center;">
+        ${imgTop}
+        <div dir="rtl" style="font-family:${family};font-size:${c.size}px;color:${c.color};text-align:${c.align};
+          font-weight:${c.bold?800:400};white-space:pre-wrap;line-height:1.5;">${escapeHtml(c.text)}</div>
+        ${imgBottom}
+      </div>${sheetFooter()}`;
+  }
+  else if(tpl==='trace'){
+    const t = store.trace;
+    const family = AR_FONTS.find(f=>f.id===t.font).family;
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">${traceRowsHtml(t.text, t.rows, t.repeats, t.style, t.size, family)}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='numtrace'){
+    const s = store.numtrace;
+    const display = s.useIndic ? toArabicDigits(s.number) : String(s.number);
+    sheet.innerHTML = `${sheetHead()}
+      <div class="sheet-body">${traceRowsHtml(display, s.rows, 6, s.style, s.size, "'Cairo', sans-serif")}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='counting'){
+    const s = store.counting;
+    const shapeCh = SHAPE_OPTIONS.find(sh=>sh.id===s.shape).ch;
+    let rows='';
+    const from = Math.max(1, Math.min(s.from,s.to));
+    const to = Math.max(s.from, s.to);
+    for(let n=from; n<=to; n++){
+      rows += `<div class="count-row"><div class="count-shapes">${Array(n).fill(shapeCh).join(' ')}</div><div class="count-box">؟</div></div>`;
+    }
+    sheet.innerHTML = `${sheetHead()}<div class="sheet-body">${rows}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='addition'){
+    const s = store.addition;
+    const shapeCh = SHAPE_OPTIONS.find(sh=>sh.id===s.shape).ch;
+    if(!s.problems){
+      s.problems = [];
+      for(let i=0;i<s.count;i++){
+        let a = 1+Math.floor(Math.random()*s.maxNum);
+        let b = 1+Math.floor(Math.random()*s.maxNum);
+        if(s.op==='sub' && b>a){ const tmp=a; a=b; b=tmp; }
+        s.problems.push([a,b]);
+      }
+    }
+    const opSym = s.op==='add' ? '+' : '−';
+    const rows = s.problems.map(([a,b])=>`<div class="problem-row">
+        <div class="problem-shapes">${Array(a).fill(shapeCh).join('')}</div>
+        <div class="problem-op">${opSym}</div>
+        <div class="problem-shapes">${Array(b).fill(shapeCh).join('')}</div>
+        <div class="problem-op">=</div>
+        <div class="problem-eq-box"></div>
+      </div>`).join('');
+    sheet.innerHTML = `${sheetHead()}<div class="sheet-body">${rows}</div>${sheetFooter()}`;
+  }
+  else if(tpl==='sequence'){
+    const s = store.sequence;
+    let cells='';
+    for(let i=0;i<s.length;i++){
+      const n = s.start + i;
+      const isBlank = (i+1) % s.blankEvery === 0;
+      const display = s.useIndic ? toArabicDigits(n) : String(n);
+      cells += isBlank ? `<div class="seq-cell blank">؟</div>` : `<div class="seq-cell filled">${display}</div>`;
+    }
+    sheet.innerHTML = `${sheetHead()}<div class="sheet-body"><div class="seq-row">${cells}</div></div>${sheetFooter()}`;
+  }
+}
+
+function renderAll(){ renderSubjectTabs(); renderGallery(); renderControls(); renderSheet(); }
+
+/* ---------------- Export ---------------- */
+async function exportPDF(){
+  const sheet = document.getElementById('sheet');
+  const canvas = await html2canvas(sheet, {scale:2, backgroundColor:'#fffefb'});
+  const imgData = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p','mm','a4');
+  const pageWidth = 210, pageHeight = 297;
+  const imgProps = pdf.getImageProperties(imgData);
+  let imgH = pageWidth * (imgProps.height/imgProps.width);
+  if(imgH > pageHeight) imgH = pageHeight;
+  pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgH);
+  pdf.save('نموذج_تعليمي.pdf');
+}
+async function exportPNG(){
+  const sheet = document.getElementById('sheet');
+  const canvas = await html2canvas(sheet, {scale:2, backgroundColor:'#fffefb'});
+  const link = document.createElement('a');
+  link.download = 'نموذج_تعليمي.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+/* ---------------- PWA install & SW ---------------- */
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBtn').classList.add('show');
+});
+document.getElementById('installBtn').onclick = async ()=>{
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('installBtn').classList.remove('show');
+};
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+document.getElementById('logoutBtn').onclick = ()=>{
+  document.getElementById('appRoot').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  renderLoginScreen();
+};
+</script>
+</body>
+</html>
